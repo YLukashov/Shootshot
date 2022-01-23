@@ -4,7 +4,6 @@ import os
 import random
 import csv
 
-###################################
 # дефолтный экран
 HEIGHT = 600
 WIDTH = int(HEIGHT * 1.3)
@@ -44,38 +43,31 @@ right_move = False
 
 shoot = False
 
-###################################
 
 mixer.init()
 
 # загрузка музыки и звуков
-sound_shootshot = pygame.mixer.Sound('audio/game_shot.wav')
+sound_shootshot = pygame.mixer.Sound('audio/shot.wav')
 sound_shootshot.set_volume(0.03)
 
-sound_jump = pygame.mixer.Sound('audio/game_jump.wav')
+sound_jump = pygame.mixer.Sound('audio/jump.wav')
 sound_jump.set_volume(0.03)
 
 # загрузка картинок
 
 # картинки кнопки
-image_exit = pygame.image.load('img/exit_btn.png')
+image_exit = pygame.image.load('img/exit.png')
 image_exit.convert_alpha()
 
-image_restart = pygame.image.load('img/restart_btn.png')
+image_restart = pygame.image.load('img/restart.png')
 image_restart.convert_alpha()
 
-image_start = pygame.image.load('img/start_btn.png')
+image_start = pygame.image.load('img/start.png')
 image_start.convert_alpha()
 
 # задний фон
-mountain_img = pygame.image.load('img/Background/mountain.png')
-mountain_img.convert_alpha()
-
-sky_img = pygame.image.load('img/Background/sky_cloud.png').convert_alpha()
-sky_img.convert_alpha()
-
-pine_img = pygame.image.load('img/Background/pine2.png').convert_alpha()
-pine_img.convert_alpha()
+background_first = pygame.image.load('img/background_first.png')
+background_first.convert_alpha()
 
 
 global score
@@ -94,20 +86,20 @@ def score_for_enemy():
 # хранение плиток в списке list_png
 list_png = []
 for x in range(plitka_tip):
-    list_png.append(pygame.transform.scale(pygame.image.load(f'img/Tile/{x}.png'), (plitka_raz, plitka_raz)))
+    list_png.append(pygame.transform.scale(pygame.image.load(f'img/tile/{x}.png'), (plitka_raz, plitka_raz)))
 
 # пуля
 bullet_img = pygame.image.load('img/icons/bullet.png')
 bullet_img.convert_alpha()
 
 # открывание коробки
-health_box_img = pygame.image.load('img/icons/health_box.png').convert_alpha()
+health_box_img = pygame.image.load('img/icons/health.png').convert_alpha()
 health_box_img.convert_alpha()
 
-ammo_box_img = pygame.image.load('img/icons/ammo_box.png').convert_alpha()
+ammo_box_img = pygame.image.load('img/icons/ammo.png').convert_alpha()
 ammo_box_img.convert_alpha()
 
-damage_box_img = pygame.image.load('img/icons/grenade_box.png').convert_alpha()
+damage_box_img = pygame.image.load('img/icons/damage.png').convert_alpha()
 damage_box_img.convert_alpha()
 
 all_boxes = {'Ammo': ammo_box_img, 'Health': health_box_img, 'Damage': damage_box_img}
@@ -124,7 +116,6 @@ font = pygame.font.SysFont(name_font, size_font)
 
 class Button:
     def __init__(self, button_x, button_y, image, scale):
-        self.clicked = False
         self.width = image.get_width()
         self.height = image.get_height()
         self.image = pygame.transform.scale(image, (int(self.width * scale), int(self.height * scale)))
@@ -132,13 +123,14 @@ class Button:
         self.button_x = button_x
         self.button_y = button_y
         self.rect.topleft = (self.button_x, self.button_y)
+        self.clicked = False
 
     def draw(self, surface):
         # проверка наведения и нажатия
-        action = True
+        activity = True
         if self.rect.collidepoint(pygame.mouse.get_pos()):
             if pygame.mouse.get_pressed()[0] == 1 and not self.clicked:
-                action = False
+                activity = False
                 self.clicked = True
 
         if pygame.mouse.get_pressed()[0] == 0:
@@ -146,7 +138,7 @@ class Button:
 
         # рисование кнопки
         surface.blit(self.image, (self.rect.x, self.rect.y))
-        return not action
+        return not activity
 
 
 # нанесение текста
@@ -158,11 +150,11 @@ def draw_text(text, font_text, text_col, text_x, text_y):
 def draw_background():
     screen.fill(color_background)
     for background_x in range(5):
-        screen.blit(pine_img, ((background_x * sky_img.get_width()) - scroll_background * 0.8,
-                               HEIGHT - pine_img.get_height()))
-        screen.blit(sky_img, ((background_x * sky_img.get_width()) - scroll_background * 0.5, 0))
-        screen.blit(mountain_img, ((background_x * sky_img.get_width()) - scroll_background * 0.6,
-                                   HEIGHT - mountain_img.get_height() - 300))
+        screen.blit(background_first, ((background_x * background_first.get_width()) - scroll_background * 0.8,
+                                       HEIGHT - background_first.get_height()))
+        screen.blit(background_first, ((background_x * background_first.get_width()) - scroll_background * 0.5, 0))
+        screen.blit(background_first, ((background_x * background_first.get_width()) - scroll_background * 0.6,
+                                       HEIGHT - background_first.get_height() - 300))
 
 
 # обновление уровня
@@ -171,6 +163,7 @@ def update_lvl():
     decoration_group.empty()
     water_group.empty()
 
+    # варги
     enemy_group.empty()
 
     # предметы
@@ -240,33 +233,33 @@ class Mir:
 class People(pygame.sprite.Sprite):
     def __init__(self, char_type, soldier_x, soldier_y, soldier_scale, soldier_speed, ammo, soldier_damage):
         pygame.sprite.Sprite.__init__(self)
+        # логические переменные для проверки
         self.alive = self.in_air = self.for_score = True
+        self.jump = self.idling = self.flip = False
+
         self.char_type = char_type
         self.health = 100
         self.max_health = self.health
-        self.direction = 1
-        self.vel_y = 0
-        self.jump = self.idling = self.flip = False
         self.damage = soldier_damage
         self.speed = soldier_speed
         self.start_ammo = ammo
         self.ammo = ammo
-        self.shoot_cooldown = 0
-        self.animation_list = []
-        self.frame_index = 0
-        self.action = 0
-        self.update_time = pygame.time.get_ticks()
-        self.move_counter = 0
+
+        self.direction = 1
+        self.vel_y = self.shoot_cooldown = self.frame_index = self.action = self.move_counter = self.idling_counter = 0
+
         self.vision = pygame.Rect(0, 0, 150, 20)
-        self.idling_counter = 0
+
+        self.animation_list = []
+
+        self.update_time = pygame.time.get_ticks()
 
         # загрузка всех изображений для игрока
         for animation in ['Idle', 'Run', 'Jump', 'Death']:
             # сброс временного списка изображений
             temp_list = []
             # количество файлов в папке
-            num_of_frames = len(os.listdir(f'img/{self.char_type}/{animation}'))
-            for i in range(num_of_frames):
+            for i in range(len(os.listdir(f'img/{self.char_type}/{animation}'))):
                 img = pygame.image.load(f'img/{self.char_type}/{animation}/{i}.png').convert_alpha()
                 temp_list.append(pygame.transform.scale(img, (int(img.get_width() * soldier_scale),
                                                               int(img.get_height() * soldier_scale))))
@@ -279,17 +272,6 @@ class People(pygame.sprite.Sprite):
         # размер
         self.width = self.image.get_width()
         self.height = self.image.get_height()
-
-    def update(self):
-        self.update_animation()
-        self.check_alive()
-        # обновление кулдауна
-        if self.shoot_cooldown > 0:
-            self.shoot_cooldown -= 1
-        # подсчет очков
-        if not self.alive and self.for_score:
-            score_for_enemy()
-            self.for_score = False
 
     def move(self, moving_left, moving_right):
         # сброс переменных перемещения
@@ -375,6 +357,21 @@ class People(pygame.sprite.Sprite):
 
         return first_screen_scroll, first_level_complete
 
+    def update_animation(self):
+        # обновление анимации
+        # обновление изображения в зависимости от текущего кадра
+        self.image = self.animation_list[self.action][self.frame_index]
+        # достаточно ли времени прошло с момента последнего обновления
+        if pygame.time.get_ticks() - self.update_time > 100:
+            self.update_time = pygame.time.get_ticks()
+            self.frame_index += 1
+        # если анимация закончилась, возвращение к началу
+        if self.frame_index >= len(self.animation_list[self.action]):
+            if self.action == 3:
+                self.frame_index = len(self.animation_list[self.action]) - 1
+            else:
+                self.frame_index = 0
+
     def shoot(self):
         if self.shoot_cooldown == 0 and self.ammo > 0:
             self.shoot_cooldown = 22
@@ -384,6 +381,20 @@ class People(pygame.sprite.Sprite):
             # reduce ammo
             self.ammo -= 1
             sound_shootshot.play()
+
+    def update(self):
+        self.update_animation()
+        self.check_alive()
+        # обновление кулдауна
+        if self.shoot_cooldown > 0:
+            self.shoot_cooldown -= 1
+        # подсчет очков
+        if not self.alive and self.for_score:
+            score_for_enemy()
+            self.for_score = False
+
+    def draw(self):
+        screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
 
     def ai(self):
         if self.alive and player.alive:
@@ -429,20 +440,12 @@ class People(pygame.sprite.Sprite):
         # скрол
         self.rect.x += screen_scroll
 
-    def update_animation(self):
-        # обновление анимации
-        # обновление изображения в зависимости от текущего кадра
-        self.image = self.animation_list[self.action][self.frame_index]
-        # достаточно ли времени прошло с момента последнего обновления
-        if pygame.time.get_ticks() - self.update_time > 100:
-            self.update_time = pygame.time.get_ticks()
-            self.frame_index += 1
-        # если анимация закончилась, возвращение к началу
-        if self.frame_index >= len(self.animation_list[self.action]):
-            if self.action == 3:
-                self.frame_index = len(self.animation_list[self.action]) - 1
-            else:
-                self.frame_index = 0
+    def check_alive(self):
+        if self.health <= 0:
+            # обнуление всего
+            self.speed = self.health = 0
+            self.alive = False
+            self.update_action(3)
 
     def update_action(self, new_action):
         # проверка на отличие действия текущего от предудущего
@@ -451,17 +454,6 @@ class People(pygame.sprite.Sprite):
             # обновление настройки анамации
             self.frame_index = 0
             self.update_time = pygame.time.get_ticks()
-
-    def check_alive(self):
-        if self.health <= 0:
-            # обнуление всего
-            self.speed = 0
-            self.alive = False
-            self.health = 0
-            self.update_action(3)
-
-    def draw(self):
-        screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
 
 
 class ItemBox(pygame.sprite.Sprite):
@@ -535,6 +527,8 @@ class HealthBar:
     def __init__(self, x_health, y_health, health, max_health):
         self.health = health
         self.max_health = max_health
+
+        # расположение
         self.x_health = x_health
         self.y_health = y_health
 
@@ -552,8 +546,13 @@ class ScreenFade:
     def __init__(self, direction_fade, colour_fade, speed_fade):
         self.fade_counter = 0
 
+        # направление исчезания
         self.direction_fade = direction_fade
+
+        # скорость исчезания
         self.speed_fade = speed_fade
+
+        # цвет исчезания
         self.colour_fade = colour_fade
 
     def fade(self):
@@ -581,13 +580,11 @@ class ScreenFade:
         return not fade_complete
 
 
-win_fade = ScreenFade(3, (50, 255, 0), 4)
-
-
 class Exit(pygame.sprite.Sprite):
     def __init__(self, exit_img, exit_x, exit_y):
         pygame.sprite.Sprite.__init__(self)
         self.image = exit_img
+
         # прямоугольник
         self.rect = self.image.get_rect()
         self.rect.midtop = (exit_x + plitka_raz // 2, exit_y + (plitka_raz - self.image.get_height()))
@@ -600,6 +597,7 @@ class Water(pygame.sprite.Sprite):
     def __init__(self, water_img, water_x, water_y):
         pygame.sprite.Sprite.__init__(self)
         self.image = water_img
+
         # прямоугольник
         self.rect = self.image.get_rect()
         self.rect.midtop = (water_x + plitka_raz // 2, water_y + (plitka_raz - self.image.get_height()))
@@ -631,13 +629,14 @@ def update():
 
 
 # создание затухания экрана
-intro_fade = ScreenFade(1, (0, 0, 0), 4)
+transition_fade = ScreenFade(1, (0, 0, 0), 4)
 death_fade = ScreenFade(2, (236, 66, 55), 4)
+win_fade = ScreenFade(3, (50, 255, 0), 4)
 
 # создание кнопок
-start_button = Button(WIDTH // 2 - 130, HEIGHT // 2 - 150, image_start, 1)
-exit_button = Button(WIDTH // 2 - 110, HEIGHT // 2 + 50, image_exit, 1)
-restart_button = Button(WIDTH // 2 - 100, HEIGHT // 2 - 50, image_restart, 2)
+button_start = Button(WIDTH // 2 - 130, HEIGHT // 2 - 150, image_start, 1)
+button_exit = Button(WIDTH // 2 - 110, HEIGHT // 2 + 50, image_exit, 1)
+button_restart = Button(WIDTH // 2 - 100, HEIGHT // 2 - 50, image_restart, 2)
 
 # создание групп спрайтов
 
@@ -715,10 +714,10 @@ while run:
         # рисование меню
         screen.fill(color_background)
         # добавление кнопок
-        if start_button.draw(screen):
+        if button_start.draw(screen):
             game_begin = True
             intro_begin = True
-        if exit_button.draw(screen):
+        if button_exit.draw(screen):
             run = False
     else:
         # обновление заднего фона
@@ -755,9 +754,9 @@ while run:
 
         # показание интро
         if intro_begin:
-            if intro_fade.fade():
+            if transition_fade.fade():
                 intro_begin = False
-                intro_fade.fade_counter = 0
+                transition_fade.fade_counter = 0
 
         # обновление действий пользователя
         if player.alive:
@@ -789,8 +788,9 @@ while run:
                         second_size_font = 50
                         second_font = pygame.font.SysFont(second_name_font, second_size_font)
                         draw_text(f'SCORE: {score}', second_font, (255, 255, 255), WIDTH // 2 - 100, HEIGHT // 2 - 100)
-                        if restart_button.draw(screen):
+                        if button_restart.draw(screen):
                             # обнуление всего
+                            tek_lvl = 1
                             intro_begin = True
 
                             win_fade.fade_counter = 0
@@ -821,7 +821,7 @@ while run:
             screen_scroll = 0
 
             if death_fade.fade():
-                if restart_button.draw(screen):
+                if button_restart.draw(screen):
                     # обнуление всего
                     intro_begin = True
 
