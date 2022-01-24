@@ -204,7 +204,7 @@ class Mir:
                         decoration = Decoration(img, mir_x * plitka_raz, mir_y * plitka_raz)
                         decoration_group.add(decoration)
                     elif tile == 15:  # создание игрока
-                        player = People('player', mir_x * plitka_raz, mir_y * plitka_raz, 1.65, 7, 20, 25)
+                        player = People('player', mir_x * plitka_raz, mir_y * plitka_raz, 1.65, 4, 20, 25)
                         player_health_bar = HealthBar(10, 10, player.health, player.health)
                     elif tile == 16:  # создание врагов
                         enemy = People('enemy', mir_x * plitka_raz, mir_y * plitka_raz, 1.65, 2, 20, 25)
